@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/static/css/main.454d11a3.css",
+    "main.js": "/static/js/main.0267feb7.js",
+    "static/media/bruce-mars-FWVMhUa_wbY-unsplash.jpg": "/static/media/bruce-mars-FWVMhUa_wbY-unsplash.ceeb02f49c565afdf3a6.jpg",
+    "index.html": "/index.html",
+    "main.454d11a3.css.map": "/static/css/main.454d11a3.css.map",
+    "main.0267feb7.js.map": "/static/js/main.0267feb7.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.454d11a3.css",
+    "static/js/main.0267feb7.js"
+  ]
+}
