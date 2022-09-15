@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { updateDoc, doc } from "firebase/firestore";
 import { AuthContext } from "../../context/auth";
 import { useHistory } from "react-router-dom";
+import { BsFillChatTextFill } from "react-icons/bs";
 
 const Navbar = () => {
   const history = useHistory();
@@ -20,13 +21,15 @@ const Navbar = () => {
   return (
     <nav>
       <h1>
-        <Link to="/">Messenger</Link>
+        <Link to="/">
+          <BsFillChatTextFill />
+        </Link>
       </h1>
 
       <div>
-        {/* this is for if user is logged in or not  */}
         {user ? (
           <>
+            <Link to="/"> Home</Link>
             <Link to="/profile"> Profile</Link>
             <button className="btn" onClick={handleSignout}>
               Logout

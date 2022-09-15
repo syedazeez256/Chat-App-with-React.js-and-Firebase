@@ -1,37 +1,89 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: process.env.REACT_APP_API_KEY,
-//   authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-//   database: process.env.REACT_APP_DATABASE_URL,
-//   projectId: process.env.REACT_APP_PROJECT_ID,
-//   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-//   messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-//   appId: process.env.REACT_APP_APP_ID,
-// };
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCPvtjv-oI4E2J7Cc3ZyzAlAPERhYThs1g",
-  authDomain: "chat-app-40e25.firebaseapp.com",
-  database: "https://chat-app-40e25.firebaseio.com",
-  projectId: "chat-app-40e25",
-  storageBucket: "chat-app-40e25.appspot.com",
-  messagingSenderId: "1023335637563",
-  appId: "1:1023335637563:web:89b5a7e163622d8136f21e",
+  apiKey: "AIzaSyD9SlKXLdTTue3j2YvQLtSQK8CH17sssqM",
+  authDomain: "messengerapp-c16eb.firebaseapp.com",
+  projectId: "messengerapp-c16eb",
+  storageBucket: "messengerapp-c16eb.appspot.com",
+  messagingSenderId: "744957165682",
+  appId: "1:744957165682:web:3e0d7e5e0fefa15fa482eb",
+  measurementId: "G-98DYV16Y32",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const messaging = getMessaging(app);
 
-export { auth, db, storage };
+function requestNotificationPermission() {
+  console.log("Requesting permission...");
+  Notification.requestPermission().then((permission) => {
+    if (permission === "granted") {
+      console.log("Notification permission granted.");
+
+      getToken(messaging, {
+        vapidKey:
+          "BNT3zL7CB_zMMvs6Ptiw3s6Lhd26luC5_slKU6PZFKbdhN-6aJJqHvNzzFEkW6_YT96_eGHR0sz50_EZAbJzxL4",
+      })
+        .then((currentToken) => {
+          if (currentToken) {
+            setDoc(
+              doc(db, "users", auth.currentUser.uid),
+              {
+                fcmToken: currentToken,
+              },
+              { merge: true }
+            )
+              .then((response) => {
+                console.log("Token set successfully: ", currentToken);
+              })
+              .catch((error) => {
+                console.error("Error while setting token: ", error);
+              });
+          } else {
+            console.log(
+              "No registration token available. Request permission to generate one."
+            );
+          }
+        })
+        .catch((err) => {
+          console.log("An error occurred while retrieving token. ", err);
+        });
+    } else {
+      console.log("Do not have Permission");
+    }
+  });
+}
+
+function sendPushNotification(fcmToken, title, message) {
+  fetch("http://127.0.0.1:8000/firebase/notification", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fcmToken: fcmToken,
+      title: title,
+      message: message,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+    })
+    .catch((err) => {
+      console.log("Notification Error: ", err);
+    });
+}
+
+export {
+  auth,
+  db,
+  storage,
+  requestNotificationPermission,
+  sendPushNotification,
+};

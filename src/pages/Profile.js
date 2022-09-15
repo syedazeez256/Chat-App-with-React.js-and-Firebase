@@ -1,106 +1,173 @@
-import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-
-import Camera from "../components/svg/Img";
-import Delete from "../components/svg/delete";
-
+import React, { useState, useEffect, useCallback } from "react";
 import Img from "../components/svg/demo.png";
 
-import { storage, db, auth } from "../firebase";
-import {
-  ref,
-  getDownloadURL,
-  uploadBytes,
-  deleteObject,
-} from "firebase/storage";
-import { getDoc, doc, updateDoc } from "firebase/firestore";
+import { db, auth, storage } from "../firebase";
+import Avatar from "@mui/material/Avatar";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// import Img from "../components/svg/demo.png";
+
+import { getDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import Navbar from "../components/navbar/navbar";
+import { getAuth, updatePassword } from "firebase/auth";
+import { useHistory } from "react-router-dom";
+import { useFormik } from "formik";
+import { passwordSchema } from "./Schema";
 
 const Profile = () => {
-  const [img, setImg] = useState("");
-  const [user, setUser] = useState();
-  const history = useHistory("");
+  const notify = () => {
+    if (img) {
+      toast("Uploaded, Reload Page");
+    } else {
+      toast("Please Select Image");
+    }
+  };
 
+  const { values, errors, touched, handleBlur, handleChange } = useFormik({
+    initialValues: { password: "", confirmPassword: "" },
+    validationSchema: passwordSchema,
+  });
+  const [img, setImg] = useState(null);
+  const [userDet, setUserDet] = useState();
+
+  const history = useHistory();
+
+  const auth = getAuth();
+  const user = auth.currentUser;
   useEffect(() => {
     getDoc(doc(db, "users", auth.currentUser.uid)).then((docSnap) => {
       if (docSnap.exists) {
-        setUser(docSnap.data());
+        setUserDet(docSnap.data());
       }
     });
+  }, []);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (img) {
-      const uploadImg = async () => {
-        const imgRef = ref(
-          storage,
-          `avatar/${new Date().getTime()} - ${img.name}`
-        );
-        try {
-          if (user.avatarPath) {
-            await deleteObject(ref(storage, user.avatarPath));
-          }
-          const snap = await uploadBytes(imgRef, img);
-          const url = await getDownloadURL(ref(storage, snap.ref.fullPath));
-
-          await updateDoc(doc(db, "users", auth.currentUser.uid), {
-            avatar: url,
-            avatarPath: snap.ref.fullPath,
-          });
-
-          setImg("");
-        } catch (err) {
-          console.log(err.message);
-        }
-      };
-      uploadImg();
-    }
-    //This in here in the future we might have to remove the empty dependencies
-  }, [img]);
-
-  // This is the delete img function for the avatar
-  const deleteImage = async () => {
-    try {
-      const confirm = window.confirm("Delete avatar?");
-      if (confirm) {
-        await deleteObject(ref(storage, user.avatarPath));
-
-        await updateDoc(doc(db, "users", auth.currentUser.uid), {
-          avatar: "",
-          avatarPath: "",
-        });
-        history.replace("/");
-      }
-    } catch (err) {
-      console.log(err.message);
+      const imgRef = ref(
+        storage,
+        `images/${new Date().getTime()} - ${img.name}`
+      );
+      const snap = await uploadBytes(imgRef, img);
+      const dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
+      const profile = doc(db, "users", user.uid);
+      await updateDoc(profile, {
+        media: dlUrl,
+      });
     }
   };
-  return user ? (
-    <section>
-      <div className="profile_container">
-        <div className="img_container">
-          <img src={user.avatar || Img} alt="avatar" />
-          <div className="overlay">
-            <div>
-              <label htmlFor="photo">
-                <Camera />
-              </label>
-              {user.avatar ? <Delete deleteImage={deleteImage} /> : null}
+
+  const deleteProfile = () => {
+    try {
+      deleteDoc(doc(db, "users", auth.currentUser.uid));
+      alert("Profile Deleted");
+      history.replace("/login");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const updateUserPassword = () => {
+    if (
+      (values.password && values.confirmPassword !== "",
+      values.password === values.confirmPassword)
+    ) {
+      updatePassword(user, values.confirmPassword)
+        .then(() => {
+          toast("Password Updated");
+          // history.replace("/login ");
+        })
+        .catch((error) => {
+          toast("Session expired, Login again to change the password");
+        });
+    }
+  };
+  return userDet ? (
+    <div>
+      <Navbar />
+      <div>
+        <form onSubmit={handleSubmit}>
+          <div className="section-prof">
+            <div className="profile_container">
+              <div className="img_container">
+                <Avatar
+                  alt="Remy Sharp"
+                  src={userDet.media}
+                  sx={{ width: 96, height: 96 }}
+                />
+                <input
+                  className="upload-pic-input"
+                  type="file"
+                  onChange={(e) => setImg(e.target.files[0])}
+                />
+              </div>
+              <div className="text_container">
+                <h3>{userDet.name}</h3>
+                <p>{userDet.email}</p>
+                <hr />
+                <small>
+                  Joined on: {userDet.createAt.toDate().toDateString()}
+                </small>
+              </div>
+            </div>
+            <button className="profile_upload_btn" onClick={notify}>
+              Upload image
+            </button>
+            <ToastContainer />
+            <div className="profile-password">
+              <label htmlFor="password">Reset Password</label>
               <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                id="photo"
-                onChange={(e) => setImg(e.target.files[0])}
+                id="password"
+                type="password"
+                placeholder="Reset Password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={
+                  errors.password && touched.password ? "input-error" : ""
+                }
               />
+              {errors.password && touched.password ? (
+                <p className="error">{errors.password}</p>
+              ) : (
+                ""
+              )}
+            </div>
+            <div className="profile-password">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm Password"
+                value={values.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={
+                  errors.confirmPassword && touched.confirmPassword
+                    ? "input-error"
+                    : ""
+                }
+              />
+              {errors.confirmPassword && touched.confirmPassword ? (
+                <p className="error">{errors.confirmPassword}</p>
+              ) : (
+                ""
+              )}
+            </div>
+            <div>
+              <button className="delete-btn" onClick={deleteProfile}>
+                Delete
+              </button>
+              <button className="update-btn" onClick={updateUserPassword}>
+                Update
+              </button>
             </div>
           </div>
-        </div>
-        <div className="text_container">
-          <h3>{user.name}</h3>
-          <p>{user.email}</p>
-          <hr />
-          <small>Joined on: {user.createAt.toDate().toDateString()}</small>
-        </div>
+        </form>
       </div>
-    </section>
+    </div>
   ) : null;
 };
 

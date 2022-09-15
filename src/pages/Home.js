@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-import User from "../components/Users/user";
 import MessageForm from "../components/MessagesForm/Form";
 import Message from "../components/Messages/Messages";
+import { BsFilterSquare } from "react-icons/bs";
+import Select from "react-select";
+import demoImg from "../components/svg/demo.png";
 
-import { db, auth, storage } from "../firebase";
+import { db, auth, storage, sendPushNotification } from "../firebase";
 import {
   collection,
   query,
@@ -18,22 +20,34 @@ import {
   getDoc,
   updateDoc,
 } from "firebase/firestore";
-import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
+import Navbar from "../components/navbar/navbar";
+import User from "../components/Users/User";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import Img from "../components/svg/Img";
 
 const Home = () => {
+  const [selectedUser, setSelectedUser] = useState();
   const [users, setUsers] = useState([]);
   const [chat, setChat] = useState("");
   const [text, setText] = useState("");
-  const [img, setImg] = useState("");
   const [msgs, setMsgs] = useState([]);
-
+  const [img, setImg] = useState(null);
+  const [userStatus, setUserStatus] = useState({
+    value: true,
+    label: "Online",
+  });
+  const activeUser = auth.currentUser;
+  console.log(activeUser);
   const user1 = auth.currentUser.uid;
-
+  const u = auth.currentUser;
+  const options = [
+    { value: true, label: "Online" },
+    { value: false, label: "Offline" },
+  ];
   useEffect(() => {
     const usersRef = collection(db, "users");
-    // create query object
     const q = query(usersRef, where("uid", "not-in", [user1]));
-    // execute query
+
     const unsub = onSnapshot(q, (querySnapshot) => {
       let users = [];
       querySnapshot.forEach((doc) => {
@@ -44,12 +58,14 @@ const Home = () => {
     return () => unsub();
   }, []);
 
+  // Chat handling method we pass as a props in user component
   const selectUser = async (user) => {
+    setSelectedUser(user);
     setChat(user);
 
     const user2 = user.uid;
-    const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
 
+    const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
     const msgsRef = collection(db, "messages", id, "chat");
     const q = query(msgsRef, orderBy("createAt", "asc"));
 
@@ -60,7 +76,6 @@ const Home = () => {
       });
       setMsgs(msgs);
     });
-
     // get last message b/w logged in user and selected user
     const docSnap = await getDoc(doc(db, "lastMsg", id));
     // if last message exists and message is from selected user
@@ -70,10 +85,8 @@ const Home = () => {
     }
   };
 
-  //this function is for store all the text messages
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const user2 = chat.uid;
 
     const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
@@ -89,13 +102,15 @@ const Home = () => {
       url = dlUrl;
     }
 
-    await addDoc(collection(db, "messages", id, "chat"), {
-      text,
-      from: user1,
-      to: user2,
-      createAt: Timestamp.fromDate(new Date()),
-      media: url || "",
-    });
+    if (text || img) {
+      await addDoc(collection(db, "messages", id, "chat"), {
+        text,
+        from: user1,
+        to: user2,
+        createAt: Timestamp.fromDate(new Date()),
+        media: url || "",
+      });
+    }
 
     await setDoc(doc(db, "lastMsg", id), {
       text,
@@ -105,48 +120,91 @@ const Home = () => {
       media: url || "",
       unread: true,
     });
+    console.log(user1);
+    console.log(u);
+
+    sendPushNotification(selectedUser.fcmToken, "New Message", text);
 
     setText("");
     setImg("");
   };
   return (
-    <div className="home_container">
-      <div className="users_container">
-        {users.map((user) => (
-          <User
-            key={user.uid}
-            user={user}
-            selectUser={selectUser}
-            user1={user1}
-            chat={chat}
-          />
-        ))}
-      </div>
-      <div className="messages_container">
-        {chat ? (
-          <>
-            <div className="messages_user">
-              <h3>{chat.name}</h3>
-              {/* Need to show an img as well */}
-              {/* <h3>{chat.img}</h3> */}
+    <div>
+      <Navbar />
+      <div className="home_container">
+        <div className="users_container">
+          <div className="active_heading">
+            <h2>Chats</h2>
+            <div className="select_active">
+              <Select
+                onChange={(e) => setUserStatus(e)}
+                value={userStatus}
+                options={options}
+                theme={(theme) => ({
+                  ...theme,
+                  borderRadius: 5,
+                  colors: {
+                    ...theme.colors,
+                    primary25: "dodgerblue",
+                    primary: "dodgerblue",
+                  },
+                })}
+              />
             </div>
-            <div className="messages">
-              {msgs.length
-                ? msgs.map((msg, i) => (
-                    <Message key={i} msg={msg} user1={user1} />
-                  ))
-                : null}
-            </div>
-            <MessageForm
-              handleSubmit={handleSubmit}
-              text={text}
-              setText={setText}
-              setImg={setImg}
-            />
-          </>
-        ) : (
-          <h3 className="no_conv">Select a user to start conversation</h3>
-        )}
+          </div>
+
+          {users
+            .filter((user) => user.isOnline === userStatus.value)
+            .map((user) => (
+              <User
+                key={user.uid}
+                user={user}
+                selectUser={selectUser}
+                user1={user1}
+                chat={chat}
+              />
+            ))}
+        </div>
+        <div className="messages_container">
+          {chat ? (
+            <>
+              <div className="messages_user">
+                {selectedUser && (
+                  <>
+                    <img src={selectedUser.media || demoImg} />
+                    <h3>{chat.name}</h3>
+                    <p
+                      className={`user_status ${
+                        selectedUser.isOnline ? "online-prof" : "offline-prof"
+                      }`}
+                    ></p>
+                  </>
+                )}
+              </div>
+              <div className="messages">
+                {msgs.length
+                  ? msgs.map((msg, i) => (
+                      <Message
+                        key={i}
+                        msg={msg}
+                        user1={user1}
+                        selectedUser={selectedUser}
+                      />
+                    ))
+                  : null}
+              </div>
+              <MessageForm
+                handleSubmit={handleSubmit}
+                text={text}
+                setText={setText}
+                setImg={setImg}
+                img={img}
+              />
+            </>
+          ) : (
+            <h3 className="no_conv">Select a user to start conversation</h3>
+          )}
+        </div>
       </div>
     </div>
   );
