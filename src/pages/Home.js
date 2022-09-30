@@ -21,7 +21,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import Navbar from "../components/navbar/navbar";
-import User from "../components/Users/User";
+import User from "../components/Users/user";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Img from "../components/svg/Img";
 
