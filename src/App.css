@@ -344,28 +344,8 @@ nav div a:hover {
   padding-bottom: 5px;
   border-bottom: 2px solid var(--color-6);
   padding-left: 30px;
-  /* display: flex; */
-  /* grid-template-columns: 2fr 2fr; */
-  /* align-items: center; */
-  /* justify-content: space-around; */
   text-decoration: none;
 }
-/* .active_heading svg {
-  position: absolute;
-  right: 5%;
-  top: 38%;
-  width: 20px;
-  height: 20px;
-  opacity: 1;
-} */
-/* .select_status {
-  position: absolute;
-  right: 5%;
-  top: 38%;
-  opacity: 0;
-  width: 20px;
-  border: 2px solid red;
-} */
 .active_heading .select_active {
   position: absolute;
   color: var(--color-1);
@@ -378,13 +358,11 @@ nav div a:hover {
 .messages_container {
   position: relative;
   border-right: 2px solid var(--color-6);
-  /* margin-left: 5px; */
 }
 .messages_user {
   display: flex;
   align-items: center;
   justify-content: start;
-  /* padding: 10px; */
   text-align: center;
   border-bottom: 2px solid var(--color-6);
   margin-top: 10px;
@@ -406,6 +384,14 @@ nav div a:hover {
   color: var(--color-4);
   text-align: center;
 }
+.input-file label svg {
+  color: var(--color-3);
+  width: 45px;
+  height: 37px;
+  cursor: pointer;
+  margin-left: 40px;
+  margin-top: 8%;
+}
 .message_form {
   position: relative;
   bottom: 0%;
@@ -416,25 +402,27 @@ nav div a:hover {
   align-items: center;
   justify-content: space-between;
 }
-.input-file label svg {
-  color: var(--color-3);
-  width: 45px;
-  height: 37px;
-  cursor: pointer;
-  margin-left: 40px;
-  margin-top: 8%;
-}
 .message_form .input-file input {
   position: absolute;
   left: 4%;
-  top: 30%;
+  top: 10%;
   color: #0084ff;
   width: 4%;
-  height: 50%;
+  height: 100%;
+  padding: 10px;
   opacity: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.cancelImg {
+  position: absolute;
+  bottom: 19%;
+  left: 6%;
+  color: #0084ff;
+  width: 20px;
+  height: 20px;
 }
 .message_form .input-message {
   position: absolute;

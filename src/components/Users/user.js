@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";
 import Img from "../svg/demo.png";
 
-import { onSnapshot, doc } from "firebase/firestore";
+import {
+  onSnapshot,
+  doc,
+  collection,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 
 const User = ({ user1, user, selectUser, chat }) => {
   const user2 = user?.uid;
   const [data, setData] = useState("");
+  const [displayMsg, setDisplayMsg] = useState("");
 
   useEffect(() => {
     const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
-    let unsub = onSnapshot(doc(db, "lastMsg", id), (doc) => {
+    onSnapshot(doc(db, "lastMsg", id), (doc) => {
       setData(doc.data());
     });
-    return () => unsub();
   }, []);
 
   return (
@@ -24,14 +31,14 @@ const User = ({ user1, user, selectUser, chat }) => {
       >
         <div className="user_info">
           <div className="user_detail">
-            <img src={user.media || Img} alt="avatar" className="avatar" />
-            <h4>{user.name}</h4>
+            <img src={user?.media || Img} alt="avatar" className="avatar" />
+            <h4>{user?.name}</h4>
             {data?.from !== user1 && data?.unread && (
               <small className="unread">New</small>
             )}
           </div>
           <div
-            className={`user_status ${user.isOnline ? "online" : "offline"}`}
+            className={`user_status ${user?.isOnline ? "online" : "offline"}`}
           ></div>
         </div>
       </div>

@@ -28,37 +28,88 @@ import Img from "../components/svg/Img";
 const Home = () => {
   const [selectedUser, setSelectedUser] = useState();
   const [users, setUsers] = useState([]);
+  const [SortedUser, setSortedUser] = useState([]);
   const [chat, setChat] = useState("");
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState([]);
   const [img, setImg] = useState(null);
   const [userStatus, setUserStatus] = useState({
-    value: true,
-    label: "Online",
+    value: "all",
+    label: "All",
   });
-  const activeUser = auth.currentUser;
-  console.log(activeUser);
   const user1 = auth.currentUser.uid;
-  const u = auth.currentUser;
   const options = [
     { value: true, label: "Online" },
     { value: false, label: "Offline" },
+    { value: "all", label: "All" },
   ];
-  useEffect(() => {
+
+  const fetchUsers = () => {
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("uid", "not-in", [user1]));
-
-    const unsub = onSnapshot(q, (querySnapshot) => {
+    onSnapshot(q, (querySnapshot) => {
       let users = [];
       querySnapshot.forEach((doc) => {
         users.push(doc.data());
       });
       setUsers(users);
     });
-    return () => unsub();
+  };
+  useEffect(() => {
+    if (users.length > 0) {
+      for (const x in users) {
+        const user2 = users[x].uid;
+        const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
+        const msgsRef = collection(db, "messages", id, "chat");
+        const q = query(msgsRef, orderBy("createAt", "asc"));
+
+        onSnapshot(q, (querySnapshot) => {
+          let msgs = [];
+          querySnapshot.forEach((doc) => {
+            msgs.push(doc.data());
+          });
+          setMsgs(msgs);
+        });
+      }
+    }
+  }, [users]);
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
-  // Chat handling method we pass as a props in user component
+  useEffect(() => {
+    let lastMessages = [];
+    if (users.length > 0) {
+      for (const x in users) {
+        let user2 = users[x].uid;
+        const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
+        const msgsRef = collection(db, "messages", id, "chat");
+        const q = query(msgsRef, orderBy("createAt", "desc"));
+        const msgs = [];
+        onSnapshot(q, (querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            msgs.push(doc.data());
+          });
+        });
+        setTimeout(() => {
+          lastMessages.push({
+            ...users[x],
+            lastMessage: msgs[0]?.createAt?.seconds,
+          });
+        }, 1000);
+        setTimeout(() => {
+          const sortedUser = lastMessages.sort((a, b) => {
+            if (a.lastMessage < b.lastMessage) return 1;
+            if (a.lastMessage > b.lastMessage) return -1;
+            return 0;
+          });
+          setSortedUser(sortedUser);
+        }, 1200);
+      }
+    }
+  }, [msgs]);
+
   const selectUser = async (user) => {
     setSelectedUser(user);
     setChat(user);
@@ -76,6 +127,7 @@ const Home = () => {
       });
       setMsgs(msgs);
     });
+
     // get last message b/w logged in user and selected user
     const docSnap = await getDoc(doc(db, "lastMsg", id));
     // if last message exists and message is from selected user
@@ -90,16 +142,18 @@ const Home = () => {
     const user2 = chat.uid;
 
     const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
-
+    console.log("lllll");
     let url;
+    console.log(img);
     if (img) {
-      const imgRef = ref(
-        storage,
-        `images/${new Date().getTime()} - ${img.name}`
-      );
-      const snap = await uploadBytes(imgRef, img);
-      const dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
+      console.log(img);
+      let imgRef = ref(storage, `images/${new Date().getTime()} - ${img.name}`);
+      console.log(imgRef);
+      let snap = await uploadBytes(imgRef, img);
+      let dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
       url = dlUrl;
+      console.log(snap);
+      console.log(url);
     }
 
     if (text || img) {
@@ -110,6 +164,8 @@ const Home = () => {
         createAt: Timestamp.fromDate(new Date()),
         media: url || "",
       });
+      setText("");
+      setImg("");
     }
 
     await setDoc(doc(db, "lastMsg", id), {
@@ -120,14 +176,11 @@ const Home = () => {
       media: url || "",
       unread: true,
     });
-    console.log(user1);
-    console.log(u);
 
     sendPushNotification(selectedUser.fcmToken, "New Message", text);
-
-    setText("");
-    setImg("");
+    console.log("=======");
   };
+  console.log(SortedUser);
   return (
     <div>
       <Navbar />
@@ -153,17 +206,19 @@ const Home = () => {
             </div>
           </div>
 
-          {users
-            .filter((user) => user.isOnline === userStatus.value)
-            .map((user) => (
-              <User
-                key={user.uid}
-                user={user}
-                selectUser={selectUser}
-                user1={user1}
-                chat={chat}
-              />
-            ))}
+          {SortedUser.filter((user) =>
+            userStatus.value === "all"
+              ? user
+              : user.isOnline === userStatus.value
+          ).map((user) => (
+            <User
+              key={user.uid}
+              user={user}
+              selectUser={selectUser}
+              user1={user1}
+              chat={chat}
+            />
+          ))}
         </div>
         <div className="messages_container">
           {chat ? (
@@ -209,5 +264,4 @@ const Home = () => {
     </div>
   );
 };
-
 export default Home;

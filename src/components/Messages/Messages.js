@@ -2,7 +2,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import React, { useRef, useEffect, useState } from "react";
 import Moment from "react-moment";
 import { db } from "../../firebase";
-import Img from "../svg/Img";
+import Img from "../svg/demo.png";
 
 const Message = ({ msg, user1, selectedUser }) => {
   const [user, setUser] = useState([]);
@@ -19,7 +19,6 @@ const Message = ({ msg, user1, selectedUser }) => {
     });
     return () => unsub();
   }, []);
-  console.log(user);
   const scrollRef = useRef();
   // console.log(msg);
 
@@ -35,7 +34,7 @@ const Message = ({ msg, user1, selectedUser }) => {
         {msg.from === user1 ? (
           <div className="sender">
             <div className="img">
-              <img src={user[0]?.media || Img} />
+              <img src={user[0]?.media !== "" ? user[0]?.media : Img} />
             </div>
             <div className="details">
               <span className="name">{user[0]?.name}</span>
@@ -47,7 +46,9 @@ const Message = ({ msg, user1, selectedUser }) => {
         ) : (
           <div className="reciever">
             <div className="img">
-              <img src={selectedUser.media || Img} />
+              <img
+                src={selectedUser?.media !== "" ? selectedUser?.media : Img}
+              />
             </div>
             <div className="details">
               <p className="name">{selectedUser?.name}</p>
