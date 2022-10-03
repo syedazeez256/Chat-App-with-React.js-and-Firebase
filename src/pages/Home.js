@@ -21,7 +21,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import Navbar from "../components/navbar/navbar";
-import User from "../components/Users/user";
+import User from "../components/Users/User";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Img from "../components/svg/Img";
 
@@ -93,16 +93,19 @@ const Home = () => {
           });
         });
         setTimeout(() => {
-          lastMessages.push({
-            ...users[x],
-            lastMessage: msgs[0]?.createAt?.seconds,
-          });
+          msgs[0]
+            ? lastMessages.push({
+                ...users[x],
+                lastMessage: msgs[0]?.createAt?.seconds,
+              })
+            : lastMessages.push({
+                ...users[x],
+                lastMessage: "",
+              });
         }, 1000);
         setTimeout(() => {
           const sortedUser = lastMessages.sort((a, b) => {
-            if (a.lastMessage < b.lastMessage) return 1;
-            if (a.lastMessage > b.lastMessage) return -1;
-            return 0;
+            return b.lastMessage - a.lastMessage;
           });
           setSortedUser(sortedUser);
         }, 1200);
@@ -142,18 +145,12 @@ const Home = () => {
     const user2 = chat.uid;
 
     const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
-    console.log("lllll");
     let url;
-    console.log(img);
     if (img) {
-      console.log(img);
       let imgRef = ref(storage, `images/${new Date().getTime()} - ${img.name}`);
-      console.log(imgRef);
       let snap = await uploadBytes(imgRef, img);
       let dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
       url = dlUrl;
-      console.log(snap);
-      console.log(url);
     }
 
     if (text || img) {
@@ -178,9 +175,7 @@ const Home = () => {
     });
 
     sendPushNotification(selectedUser.fcmToken, "New Message", text);
-    console.log("=======");
   };
-  console.log(SortedUser);
   return (
     <div>
       <Navbar />
