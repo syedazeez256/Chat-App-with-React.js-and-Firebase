@@ -20,7 +20,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const messaging = getMessaging(app);
-console.log("firebase");
 
 function requestNotificationPermission() {
   // console.log("Requesting permission...");

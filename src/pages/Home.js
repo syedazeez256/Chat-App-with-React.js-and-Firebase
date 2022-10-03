@@ -112,7 +112,6 @@ const Home = () => {
       }
     }
   }, [msgs]);
-
   const selectUser = async (user) => {
     setSelectedUser(user);
     setChat(user);
@@ -212,6 +211,7 @@ const Home = () => {
               selectUser={selectUser}
               user1={user1}
               chat={chat}
+              selectedUser={selectedUser}
             />
           ))}
         </div>

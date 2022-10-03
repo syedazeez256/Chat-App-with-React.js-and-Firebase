@@ -277,11 +277,9 @@ nav div a:hover {
   overflow: auto;
   height: calc(100vh - 70px);
   width: 100vw;
-  /* background: #353c40; */
   color: black;
 }
 .users_container {
-  margin-top: 10px;
   border-right: 2px solid var(--color-6);
   overflow-y: auto;
 
@@ -358,6 +356,7 @@ nav div a:hover {
 .messages_container {
   position: relative;
   border-right: 2px solid var(--color-6);
+  margin-top: 0%;
 }
 .messages_user {
   display: flex;
@@ -365,7 +364,7 @@ nav div a:hover {
   justify-content: start;
   text-align: center;
   border-bottom: 2px solid var(--color-6);
-  margin-top: 10px;
+  /* margin-top: 10px; */
 }
 .messages_user h3 {
   text-transform: capitalize;
