@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useHistory } from "react-router-dom";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -44,7 +44,7 @@ const Register = () => {
   return (
     <div className="container ">
       <div className="image">
-        <img />
+        <img alt="home" />
       </div>
       <div className="section">
         <h3>Create An Account</h3>

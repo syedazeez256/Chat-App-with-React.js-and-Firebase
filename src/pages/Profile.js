@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Img from "../components/svg/demo.png";
 
-import { db, auth, storage } from "../firebase";
+import { db, storage } from "../firebase";
 import Avatar from "@mui/material/Avatar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
