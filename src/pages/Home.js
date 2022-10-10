@@ -37,7 +37,7 @@ const Home = () => {
     value: "all",
     label: "All",
   });
-  const user1 = auth.currentUser.uid;
+  const activeUser = auth.currentUser.uid;
   const options = [
     { value: true, label: "Online" },
     { value: false, label: "Offline" },
@@ -46,7 +46,7 @@ const Home = () => {
 
   const fetchUsers = () => {
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("uid", "not-in", [user1]));
+    const q = query(usersRef, where("uid", "not-in", [activeUser]));
     onSnapshot(q, (querySnapshot) => {
       let users = [];
       querySnapshot.forEach((doc) => {
@@ -55,21 +55,32 @@ const Home = () => {
       setUsers(users);
     });
   };
+  const fetchMessages = (nonActiveUser) => {
+    console.log("msgs func");
+    const id =
+      activeUser > nonActiveUser
+        ? `${activeUser + nonActiveUser}`
+        : `${nonActiveUser + activeUser}`;
+    const msgsRef = collection(db, "messages", id, "chat");
+    const q = query(msgsRef, orderBy("createAt", "asc"));
+
+    onSnapshot(q, (querySnapshot) => {
+      let msgs = [];
+      querySnapshot.forEach((doc) => {
+        msgs.push(doc.data());
+      });
+      setMsgs(msgs);
+    });
+  };
   useEffect(() => {
     if (users.length > 0) {
-      for (const x in users) {
-        const user2 = users[x].uid;
-        const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
-        const msgsRef = collection(db, "messages", id, "chat");
-        const q = query(msgsRef, orderBy("createAt", "asc"));
-
-        onSnapshot(q, (querySnapshot) => {
-          let msgs = [];
-          querySnapshot.forEach((doc) => {
-            msgs.push(doc.data());
-          });
-          setMsgs(msgs);
-        });
+      try {
+        for (const x in users) {
+          const nonActiveUser = users[x].uid;
+          fetchMessages(nonActiveUser);
+        }
+      } catch (error) {
+        console.log(error, "Error while getting messages from firebase");
       }
     }
   }, [users]);
@@ -82,33 +93,38 @@ const Home = () => {
     let lastMessages = [];
     if (users.length > 0) {
       for (const x in users) {
-        let user2 = users[x].uid;
-        const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
+        let nonActiveUser = users[x].uid;
+        const id =
+          activeUser > nonActiveUser
+            ? `${activeUser + nonActiveUser}`
+            : `${nonActiveUser + activeUser}`;
         const msgsRef = collection(db, "messages", id, "chat");
         const q = query(msgsRef, orderBy("createAt", "desc"));
-        const msgs = [];
+
+        let messages = []; // 0
         onSnapshot(q, (querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            msgs.push(doc.data());
+            messages.push(doc.data());
           });
         });
+
         setTimeout(() => {
-          msgs[0]
+          messages[0]
             ? lastMessages.push({
                 ...users[x],
-                lastMessage: msgs[0]?.createAt?.seconds,
+                lastMessage: messages[0]?.createAt?.seconds,
               })
             : lastMessages.push({
                 ...users[x],
                 lastMessage: "",
               });
-        }, 1000);
+        }, 100);
         setTimeout(() => {
           const sortedUser = lastMessages.sort((a, b) => {
             return b.lastMessage - a.lastMessage;
           });
           setSortedUser(sortedUser);
-        }, 1200);
+        }, 200);
       }
     }
   }, [msgs]);
@@ -116,24 +132,22 @@ const Home = () => {
     setSelectedUser(user);
     setChat(user);
 
-    const user2 = user.uid;
+    const nonActiveUser = user.uid;
 
-    const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
-    const msgsRef = collection(db, "messages", id, "chat");
-    const q = query(msgsRef, orderBy("createAt", "asc"));
-
-    onSnapshot(q, (querySnapshot) => {
-      let msgs = [];
-      querySnapshot.forEach((doc) => {
-        msgs.push(doc.data());
-      });
-      setMsgs(msgs);
-    });
+    const id =
+      activeUser > nonActiveUser
+        ? `${activeUser + nonActiveUser}`
+        : `${nonActiveUser + activeUser}`;
+    try {
+      fetchMessages(nonActiveUser);
+    } catch (error) {
+      console.log(error, "Error while getting Messages from firebase");
+    }
 
     // get last message b/w logged in user and selected user
     const docSnap = await getDoc(doc(db, "lastMsg", id));
     // if last message exists and message is from selected user
-    if (docSnap.data() && docSnap.data().from !== user1) {
+    if (docSnap.data() && docSnap.data().from !== activeUser) {
       // update last message doc, set unread to false
       await updateDoc(doc(db, "lastMsg", id), { unread: false });
     }
@@ -141,37 +155,54 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user2 = chat.uid;
+    const nonActiveUser = chat.uid;
 
-    const id = user1 > user2 ? `${user1 + user2}` : `${user2 + user1}`;
+    const id =
+      activeUser > nonActiveUser
+        ? `${activeUser + nonActiveUser}`
+        : `${nonActiveUser + activeUser}`;
     let url;
     if (img) {
-      let imgRef = ref(storage, `images/${new Date().getTime()} - ${img.name}`);
-      let snap = await uploadBytes(imgRef, img);
-      let dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
-      url = dlUrl;
+      try {
+        let imgRef = ref(
+          storage,
+          `images/${new Date().getTime()} - ${img.name}`
+        );
+        let snap = await uploadBytes(imgRef, img);
+        let dlUrl = await getDownloadURL(ref(storage, snap.ref.fullPath));
+        url = dlUrl;
+      } catch (error) {
+        console.log(error, "Error while uploading Images in firebase stoarge");
+      }
     }
 
     if (text || img) {
-      await addDoc(collection(db, "messages", id, "chat"), {
+      try {
+        await addDoc(collection(db, "messages", id, "chat"), {
+          text,
+          from: activeUser,
+          to: nonActiveUser,
+          createAt: Timestamp.fromDate(new Date()),
+          media: url || "",
+        });
+        setText("");
+        setImg("");
+      } catch (error) {
+        console.log(error, "While Adding Documet in Firebase");
+      }
+    }
+    try {
+      await setDoc(doc(db, "lastMsg", id), {
         text,
-        from: user1,
-        to: user2,
+        from: activeUser,
+        to: nonActiveUser,
         createAt: Timestamp.fromDate(new Date()),
         media: url || "",
+        unread: true,
       });
-      setText("");
-      setImg("");
+    } catch (error) {
+      console.log(error, "While setting documnet in Firebase");
     }
-
-    await setDoc(doc(db, "lastMsg", id), {
-      text,
-      from: user1,
-      to: user2,
-      createAt: Timestamp.fromDate(new Date()),
-      media: url || "",
-      unread: true,
-    });
 
     sendPushNotification(selectedUser.fcmToken, "New Message", text);
   };
@@ -209,7 +240,7 @@ const Home = () => {
               key={user.uid}
               user={user}
               selectUser={selectUser}
-              user1={user1}
+              activeUser={activeUser}
               chat={chat}
               selectedUser={selectedUser}
             />
@@ -222,9 +253,9 @@ const Home = () => {
                 {selectedUser && (
                   <>
                     <img src={selectedUser.media || demoImg} />
-                    <h3>{chat.name}</h3>
+                    <h3 className="userName">{chat.name}</h3>
                     <p
-                      className={`user_status ${
+                      className={` ${
                         selectedUser.isOnline ? "online-prof" : "offline-prof"
                       }`}
                     ></p>
@@ -237,7 +268,7 @@ const Home = () => {
                       <Message
                         key={i}
                         msg={msg}
-                        user1={user1}
+                        activeUser={activeUser}
                         selectedUser={selectedUser}
                       />
                     ))

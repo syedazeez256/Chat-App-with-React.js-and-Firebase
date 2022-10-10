@@ -39,7 +39,6 @@ const Form = ({ handleSubmit, text, setText, setImg, img }) => {
       </div>
       <div className="input-message">
         <InputEmoji
-          className="hello"
           value={text}
           onChange={setText}
           placeholder="Type a message"

@@ -95,7 +95,7 @@ select.input_error {
   transform: scale(1.1);
 }
 div p {
-  margin-top: 30px;
+  /* margin-top: 30px; */
   color: var(--color-1);
 }
 div p a {
@@ -277,23 +277,36 @@ nav div a:hover {
   overflow: auto;
   height: calc(100vh - 70px);
   width: 100vw;
-  color: black;
+  color: white;
+  background: #16161d;
 }
 .users_container {
-  border-right: 2px solid var(--color-6);
+  /* border-right: 2px solid var(--color-6); */
   overflow-y: auto;
-
+  background: #708090;
   /* margin: 10px 5px 0px 5px; */
 }
 .user_wrapper {
-  margin-bottom: 10px;
-  padding: 15px;
+  padding: 10px;
   cursor: pointer;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  background: #dcdcdc;
+  height: 80px;
+  color: black;
+  margin: 10px 5px;
 }
-.user_info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+::-webkit-scrollbar {
+  width: 5px;
+}
+/* ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+} */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 .user_detail {
   text-transform: capitalize;
@@ -301,7 +314,7 @@ nav div a:hover {
   align-items: center;
 }
 .user_detail h4 {
-  margin-left: 10px;
+  margin-left: 20px;
 }
 .avatar {
   width: 50px;
@@ -310,6 +323,9 @@ nav div a:hover {
   border: 1px solid var(--color-4);
 }
 .user_status {
+  position: relative;
+  left: 40px;
+  bottom: 17px;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -325,11 +341,15 @@ nav div a:hover {
 }
 .online-prof {
   background: #34eb52;
-  margin: 0% 0% 1% 80%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
 }
 .offline-prof {
   background: var(--color-5);
-  margin: 0% 0% 1% 80%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
 }
 .input-message {
   margin-top: 0px !important ;
@@ -340,7 +360,7 @@ nav div a:hover {
   position: relative;
   margin-top: 5px;
   padding-bottom: 5px;
-  border-bottom: 2px solid var(--color-6);
+  /* border-bottom: 2px solid var(--color-6); */
   padding-left: 30px;
   text-decoration: none;
 }
@@ -357,25 +377,28 @@ nav div a:hover {
   position: relative;
   border-right: 2px solid var(--color-6);
   margin-top: 0%;
+  background: #dcdcdc;
 }
 .messages_user {
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: space-between;
   text-align: center;
-  border-bottom: 2px solid var(--color-6);
+  background: #708090;
+  border-radius: 15px;
+  margin: 10px 20px;
+  padding: 0px 30px;
+
   /* margin-top: 10px; */
 }
-.messages_user h3 {
+.messages_user .userName {
   text-transform: capitalize;
   font-size: 23px;
 }
 .messages_user img {
-  width: 40px;
-  height: 40px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
-  margin-right: 15px;
-  margin-left: 25px;
   /* background-color: #0b1424; */
 }
 .no_conv {
@@ -393,10 +416,10 @@ nav div a:hover {
 }
 .message_form {
   position: relative;
-  /* bottom: 0%; */
+  bottom: 0%;
   left: 0%;
   width: 100%;
-  height: 45px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -404,7 +427,7 @@ nav div a:hover {
 .message_form .input-file input {
   position: absolute;
   left: 4%;
-  top: 10%;
+  top: 5%;
   color: #0084ff;
   width: 4%;
   height: 100%;
@@ -423,15 +446,9 @@ nav div a:hover {
   height: 20px;
 }
 .message_form .input-message {
-  position: absolute;
-  left: 17%;
-  top: 6%;
   width: 70%;
-  height: 40px;
-  padding: 10px;
-  border-radius: 5px;
-  outline: none;
-  /* border: 1px solid var(--color-4); */
+  position: relative;
+  top: 10%;
 }
 .message_form .btn {
   background: var(--color-3);
@@ -440,54 +457,78 @@ nav div a:hover {
   margin-top: 5px;
 }
 .messages {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 217px);
   overflow-y: auto;
-  border-bottom: 2px solid var(--color-6);
+  background: #f2f2f2;
 }
 .message_wrapper {
   margin-top: 5px;
   padding: 0px 5px;
+  width: 50%;
 }
 .message_wrapper img {
   width: 100%;
   border-radius: 5px;
 }
-.message_wrapper p {
+/* .message_wrapper p {
   padding: 10px;
   display: inline-block;
   max-width: 50%;
   text-align: left;
   border-radius: 5px;
   margin-left: 15px;
-}
+} */
 .message_wrapper small {
   display: inline-block;
   margin-top: 15px;
   opacity: 0.8;
 }
-.message_wrapper.own {
+.message_wrapper .own {
   text-align: right;
   margin-right: 15px;
   margin-top: 0px;
+  max-width: 50%;
   /* border: 2px solid red; */
 }
 .me {
-  background: var(--color-3);
   color: white;
-  border-radius: 50%;
-  padding: 0;
-  max-width: 75%;
+  border-radius: 20px;
+  padding: 1px 6px;
+  background: #4168e2;
+  word-break: break-all;
+  white-space: pre-wrap;
+  margin-left: auto;
 }
 .friend {
-  background: var(--color-6);
-  border-radius: 50%;
-  padding: 0;
+  background: #6cadd6;
+  color: white;
+  border-radius: 20px;
+  padding: 1px 6px;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.friendMsg {
+  background-color: #1d1b26;
+  width: 100%;
+  border-radius: 20px;
+  margin-top: 5px;
+  padding: 2px 10px;
+}
+.myMsg {
+  background: var(--color-2);
+  color: black;
+  margin-top: 5px;
+  border-radius: 20px;
+  padding: 2px 10px;
+  float: right;
+  width: 100%;
 }
 .sender {
   display: flex;
-  text-align: right;
-  justify-content: end;
+  /* text-align: right; */
+  /* justify-content: end; */
   margin-top: 10px;
+  max-width: 50%;
   /* border: 2px solid red; */
 }
 .sender .details span {
@@ -504,14 +545,14 @@ nav div a:hover {
   text-transform: capitalize;
   text-align: left;
   margin-left: 10px;
-  /* border: 2px solid red; */
+  color: black;
 }
 .sender .details .time {
   font-size: 11px;
   font-weight: lighter;
   text-transform: capitalize;
   margin-left: 5px;
-  /* border: 2px solid red; */
+  color: black;
 }
 .sender .img img {
   width: 40px;
@@ -523,6 +564,7 @@ nav div a:hover {
   flex-direction: row;
   padding-left: 10px;
   margin-top: 10px;
+  max-width: 50%;
 }
 .reciever .img img {
   width: 40px;
@@ -545,19 +587,23 @@ nav div a:hover {
   font-weight: bold;
   font-size: 14px;
   margin-left: 10px;
+  color: white;
 }
 .reciever .details .time {
   font-size: 11px;
   font-weight: lighter;
   margin-left: 5px;
+  color: white;
 }
 .text {
   max-width: 500px;
   min-height: 10px;
 }
 .selected_user {
-  color: #0084ff;
-  border-radius: 5px;
+  color: #4b0082;
+  font-weight: 600;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
 }
 .truncate {
   font-size: 14px;

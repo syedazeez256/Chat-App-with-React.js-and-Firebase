@@ -37,11 +37,15 @@ const Profile = () => {
   const auth = getAuth();
   const user = auth.currentUser;
   useEffect(() => {
-    getDoc(doc(db, "users", auth.currentUser.uid)).then((docSnap) => {
-      if (docSnap.exists) {
-        setUserDet(docSnap.data());
-      }
-    });
+    try {
+      getDoc(doc(db, "users", auth.currentUser.uid)).then((docSnap) => {
+        if (docSnap.exists) {
+          setUserDet(docSnap.data());
+        }
+      });
+    } catch (error) {
+      console.log(error, "Error while getting active user");
+    }
   }, []);
 
   const handleSubmit = async (e) => {
