@@ -56,7 +56,6 @@ const Home = () => {
     });
   };
   const fetchMessages = (nonActiveUser) => {
-    console.log("msgs func");
     const id =
       activeUser > nonActiveUser
         ? `${activeUser + nonActiveUser}`

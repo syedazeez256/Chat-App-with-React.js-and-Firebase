@@ -16,6 +16,7 @@ const Login = () => {
       await updateDoc(doc(db, "users", result.user.uid), {
         isOnline: true,
       });
+      console.log(result, "result");
 
       history.replace("/");
     } catch (err) {

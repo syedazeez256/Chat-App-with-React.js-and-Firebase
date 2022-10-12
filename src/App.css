@@ -325,7 +325,7 @@ nav div a:hover {
 .user_status {
   position: relative;
   left: 40px;
-  bottom: 17px;
+  bottom: 20px;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -428,7 +428,6 @@ nav div a:hover {
   position: absolute;
   left: 4%;
   top: 5%;
-  color: #0084ff;
   width: 4%;
   height: 100%;
   padding: 10px;
@@ -446,9 +445,9 @@ nav div a:hover {
   height: 20px;
 }
 .message_form .input-message {
-  width: 70%;
   position: relative;
-  top: 10%;
+  top: 13%;
+  width: 80%;
 }
 .message_form .btn {
   background: var(--color-3);
@@ -619,8 +618,8 @@ nav div a:hover {
   margin-left: 10px;
   background: var(--color-3);
   color: white;
-  padding: 2px 4px;
-  border-radius: 10px;
+  padding: 5px;
+  border-radius: 50%;
 }
 .sm_screen {
   display: none;

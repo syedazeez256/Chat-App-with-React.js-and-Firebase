@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { getDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import Navbar from "../components/navbar/navbar";
-import { getAuth, updatePassword } from "firebase/auth";
+import { deleteUser, getAuth, updatePassword } from "firebase/auth";
 import { useHistory } from "react-router-dom";
 import { useFormik } from "formik";
 import { passwordSchema } from "./Schema";
@@ -63,15 +63,20 @@ const Profile = () => {
       });
     }
   };
-
+  console.log(user.uid);
   const deleteProfile = () => {
-    try {
-      deleteDoc(doc(db, "users", auth.currentUser.uid));
-      alert("Profile Deleted");
-      history.replace("/login");
-    } catch (error) {
-      console.log(error);
-    }
+    deleteUser(user)
+      .then(() => {
+        deleteDoc(doc(db, "users", user.uid))
+          .then((res) => alert("Profile Deleted"))
+          .catch((error) => {
+            console.log(error, " While deleting user");
+            toast("Session expired, Please login again");
+          });
+      })
+      .catch((error) =>
+        console.log(error, "Something going wrong while deleting user")
+      );
   };
   const updateUserPassword = () => {
     if (
@@ -81,7 +86,7 @@ const Profile = () => {
       updatePassword(user, values.confirmPassword)
         .then(() => {
           toast("Password Updated");
-          // history.replace("/login ");
+          history.replace("/login ");
         })
         .catch((error) => {
           toast("Session expired, Login again to change the password");
@@ -112,7 +117,7 @@ const Profile = () => {
                 <p>{userDet.email}</p>
                 <hr />
                 <small>
-                  Joined on: {userDet.createAt.toDate().toDateString()}
+                  Joined on: {userDet.createAt?.toDate()?.toDateString()}
                 </small>
               </div>
             </div>
